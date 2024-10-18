@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-srv
+  annotations:
+    #   kubernetes.io/ingress.class: nginx  # deprecated
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx # Use 'ingressClassName' instead of the deprecated annotation
+  rules:
+    - host: posts.com
+      http: # Correcting from 'https' to 'http'
+        paths:
+          - path: /posts/create
+            pathType: Prefix # Recommended to add pathType (required in Kubernetes v1.18+)
+            backend:
+              service:
+                name: posts-clusterip-srv # Correcting from 'servideName' to 'service'
+                port:
+                  number: 4000 # Matching the port in the service definition
+          - path: /posts
+            pathType: Prefix # Recommended to add pathType (required in Kubernetes v1.18+)
+            backend:
+              service:
+                name: query-srv # Correcting from 'servideName' to 'service'
+                port:
+                  number: 4002 # Matching the port in the service definition
+          - path: /posts/.*/comments # Updated path to use regex for matching
+            pathType: ImplementationSpecific # Use ImplementationSpecific for regex paths
+            # - path: /posts/?(.*)/comments # it is deprecated
+            #   pathType: Prefix # Recommended to add pathType (required in Kubernetes v1.18+) but not used for regex 
+            backend:
+              service:
+                name: comments-srv # Correcting from 'servideName' to 'service'
+                port:
+                  number: 4001 # Matching the port in the service definition
+          - path: /.* # Updated path to use regex for matching
+            pathType: ImplementationSpecific # Use ImplementationSpecific for regex paths
+            backend:
+              service:
+                name: client-srv # Correcting from 'servideName' to 'service'
+                port:
+                  number: 3000 # Matching the port in the service definition
